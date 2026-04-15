@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import './BoardPage.css';
 
-function BoardPage({ title, emoji, description, accentColor, posts: initialPosts }) {
-  const [posts, setPosts] = useState(initialPosts);
+function BoardPage({ title, emoji, description, accentColor, posts: externalPosts, onAddPost }) {
+  const [internalPosts, setInternalPosts] = useState(externalPosts);
+  const posts = onAddPost ? externalPosts : internalPosts;
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
@@ -22,7 +23,11 @@ function BoardPage({ title, emoji, description, accentColor, posts: initialPosts
       comments: 0,
     };
 
-    setPosts([newPost, ...posts]);
+    if (onAddPost) {
+      onAddPost(newPost);
+    } else {
+      setInternalPosts([newPost, ...internalPosts]);
+    }
     setNewTitle('');
     setNewContent('');
     setShowForm(false);

@@ -1,0 +1,391 @@
+/* ===== Voice Writer Container ===== */
+.voice-writer {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
+  border: 2px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 28px;
+}
+
+.vw-header h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #166534;
+  margin: 0 0 4px;
+}
+
+.vw-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 20px;
+}
+
+/* ===== Error ===== */
+.vw-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.92rem;
+  color: #b91c1c;
+}
+
+.vw-error-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #b91c1c;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+/* ===== Mic Button (Idle) ===== */
+.vw-mic-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 32px 20px;
+  border: 2px dashed #86efac;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.vw-mic-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #22c55e;
+  transform: scale(1.01);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+}
+
+.vw-mic-icon {
+  font-size: 3rem;
+}
+
+.vw-mic-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #166534;
+}
+
+/* ===== Listening ===== */
+.vw-listening {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.vw-pulse-wrap {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vw-pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid #22c55e;
+  animation: vw-pulse 1.5s ease-out infinite;
+}
+
+.vw-pulse-ring-2 {
+  animation-delay: 0.75s;
+}
+
+@keyframes vw-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.vw-pulse-icon {
+  font-size: 2.5rem;
+  z-index: 1;
+  animation: vw-bounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes vw-bounce {
+  from { transform: scale(1); }
+  to { transform: scale(1.15); }
+}
+
+.vw-listening-label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #166534;
+  margin: 0;
+}
+
+.vw-live-transcript {
+  width: 100%;
+  min-height: 80px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  text-align: left;
+  color: #1f2937;
+}
+
+.vw-final-text {
+  color: #1f2937;
+}
+
+.vw-interim-text {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.vw-placeholder-text {
+  color: #d1d5db;
+  font-style: italic;
+}
+
+.vw-stop-btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 10px;
+  background: #ef4444;
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.vw-stop-btn:hover {
+  background: #dc2626;
+}
+
+.vw-stop-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===== Transcript Ready ===== */
+.vw-transcript-ready h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 12px;
+}
+
+.vw-transcript-box {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 18px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #1f2937;
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* ===== Button Group ===== */
+.vw-btn-group {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.vw-btn {
+  padding: 11px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vw-btn:active {
+  transform: scale(0.97);
+}
+
+.vw-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.vw-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.vw-btn-primary {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  box-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+}
+
+.vw-btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+  transform: translateY(-1px);
+}
+
+.vw-btn-publish {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+}
+
+.vw-btn-publish:hover {
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ===== Processing ===== */
+.vw-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 0;
+}
+
+.vw-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: vw-spin 0.8s linear infinite;
+}
+
+@keyframes vw-spin {
+  to { transform: rotate(360deg); }
+}
+
+.vw-processing-label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #166534;
+  margin: 0;
+}
+
+/* ===== Result ===== */
+.vw-result {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vw-result-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vw-result-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vw-result-title {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.vw-result-content {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 18px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #374151;
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.vw-result-summary {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #1e40af;
+  white-space: pre-wrap;
+}
+
+/* ===== Compare ===== */
+.vw-compare {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.vw-compare summary {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.vw-compare summary:hover {
+  background: #f3f4f6;
+}
+
+.vw-original-text {
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+  white-space: pre-wrap;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .voice-writer {
+    padding: 20px 16px;
+  }
+
+  .vw-btn-group {
+    flex-direction: column;
+  }
+
+  .vw-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

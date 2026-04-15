@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import BoardPage from '../components/BoardPage';
+import VoiceWriter from '../components/VoiceWriter';
 
 const samplePosts = [
   {
@@ -31,14 +33,24 @@ const samplePosts = [
 ];
 
 function FreeBoard() {
+  const [posts, setPosts] = useState(samplePosts);
+
+  const handleVoicePostCreate = (newPost) => {
+    setPosts((prev) => [newPost, ...prev]);
+  };
+
   return (
-    <BoardPage
-      title="자유게시판"
-      emoji="🗣️"
-      description="일상부터 취미까지 무엇이든 자유롭게 이야기해요. 규칙은 서로 존중하기뿐!"
-      accentColor="#1565c0"
-      posts={samplePosts}
-    />
+    <div>
+      <VoiceWriter onPostCreate={handleVoicePostCreate} />
+      <BoardPage
+        title="자유게시판"
+        emoji="🗣️"
+        description="일상부터 취미까지 무엇이든 자유롭게 이야기해요. 규칙은 서로 존중하기뿐!"
+        accentColor="#1565c0"
+        posts={posts}
+        onAddPost={handleVoicePostCreate}
+      />
+    </div>
   );
 }
 
