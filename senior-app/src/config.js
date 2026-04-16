@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// Firebase 설정 - 실제 값으로 교체하세요
+// Firebase 설정 
 const firebaseConfig = {
   apiKey: "AIzaSyBVa43WWRo449K5m6g0MSuO1ZRDDB9_-_U",
   authDomain: "capstone2-a7107.firebaseapp.com",

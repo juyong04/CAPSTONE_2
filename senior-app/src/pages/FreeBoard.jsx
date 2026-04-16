@@ -8,7 +8,7 @@ import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 function FreeBoard() {
   const [posts, setPosts] = useState([]);
 
-  // 🔥 자유게시판 글만 불러오기
+  //  자유게시판 글만 불러오기
   useEffect(() => {
     const loadPosts = async () => {
       try {
@@ -33,17 +33,17 @@ function FreeBoard() {
     loadPosts();
   }, []);
 
-  // 🔥 글 저장
+  //  글 저장
   const handlePostCreate = async (newPost) => {
     try {
       await addDoc(collection(db, 'posts'), {
         title: newPost.title,
         content: newPost.content,
-        board: 'free', // 🔥 핵심
+        board: 'free', //  
         createdAt: new Date(),
       });
 
-      // 🔥 저장 후 다시 불러오기
+      //  저장 후 다시 불러오기
       const q = query(
         collection(db, 'posts'),
         where('board', '==', 'free')
