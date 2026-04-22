@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import BoardPage from '../components/BoardPage';
 import VoiceWriter from '../components/VoiceWriter';
 
-import { db } from '../config';
+import { db } from '../firebase/config';
 import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 
 function FreeBoard() {
@@ -39,7 +39,11 @@ function FreeBoard() {
       await addDoc(collection(db, 'posts'), {
         title: newPost.title,
         content: newPost.content,
-        board: 'free', //  
+        author: newPost.author || '익명',
+        date: newPost.date || new Date().toISOString().split('T')[0],
+        views: newPost.views !== undefined ? newPost.views : 0,
+        comments: newPost.comments !== undefined ? newPost.comments : 0,
+        board: 'free',
         createdAt: new Date(),
       });
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import BoardPage from '../components/BoardPage';
-import { db } from '../config';
+import VoiceWriter from '../components/VoiceWriter';
+import { db } from '../firebase/config';
 import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 
 function Education() {
@@ -35,6 +36,10 @@ function Education() {
       await addDoc(collection(db, 'posts'), {
         title: newPost.title,
         content: newPost.content,
+        author: newPost.author || '익명',
+        date: newPost.date || new Date().toISOString().split('T')[0],
+        views: newPost.views !== undefined ? newPost.views : 0,
+        comments: newPost.comments !== undefined ? newPost.comments : 0,
         board: 'education',
         createdAt: new Date(),
       });
@@ -59,11 +64,15 @@ function Education() {
   };
 
   return (
-    <BoardPage
-      title="교육 게시판"
-      posts={posts}
-      onAddPost={handlePostCreate}
-    />
+    <div>
+      <VoiceWriter onPostCreate={handlePostCreate} />
+
+      <BoardPage
+        title="교육 게시판"
+        posts={posts}
+        onAddPost={handlePostCreate}
+      />
+    </div>
   );
 }
 
