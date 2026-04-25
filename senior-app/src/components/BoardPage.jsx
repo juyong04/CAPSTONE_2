@@ -47,6 +47,18 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
             <span>📅 {selectedPost.date}</span>
             <span>👁 조회 {selectedPost.views}</span>
           </div>
+
+          {/* 음성 첨부가 있으면 오디오 플레이어 표시 */}
+          {selectedPost.audioURL && (
+            <div className="post-audio-section">
+              <div className="post-audio-header">
+                <span className="post-audio-icon">🎤</span>
+                <span className="post-audio-title">음성으로 작성된 글이에요</span>
+              </div>
+              <audio controls src={selectedPost.audioURL} className="post-audio-player" />
+            </div>
+          )}
+
           <div className="post-detail-content">{selectedPost.content}</div>
         </div>
       </div>
@@ -105,7 +117,10 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
             onClick={() => setSelectedPost(post)}
           >
             <div className="post-main">
-              <span className="post-title">{post.title}</span>
+              <span className="post-title">
+                {post.audioURL && <span className="post-voice-badge">🎤</span>}
+                {post.title}
+              </span>
               <span className="post-preview">{post.content.slice(0, 60)}{post.content.length > 60 ? '…' : ''}</span>
             </div>
             <div className="post-meta">

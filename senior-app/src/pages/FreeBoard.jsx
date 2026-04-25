@@ -1,75 +1,13 @@
-import { useState, useEffect } from 'react';
 import BoardPage from '../components/BoardPage';
 import VoiceWriter from '../components/VoiceWriter';
-
-import { db } from '../firebase/config';
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
+import useBoardPosts from '../hooks/useBoardPosts';
 
 function FreeBoard() {
-  const [posts, setPosts] = useState([]);
-
-  //  자유게시판 글만 불러오기
-  useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const q = query(
-          collection(db, 'posts'),
-          where('board', '==', 'free')
-        );
-
-        const querySnapshot = await getDocs(q);
-
-        const postList = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setPosts(postList);
-      } catch (error) {
-        console.error('게시글 불러오기 실패:', error);
-      }
-    };
-
-    loadPosts();
-  }, []);
-
-  //  글 저장
-  const handlePostCreate = async (newPost) => {
-    try {
-      await addDoc(collection(db, 'posts'), {
-        title: newPost.title,
-        content: newPost.content,
-        author: newPost.author || '익명',
-        date: newPost.date || new Date().toISOString().split('T')[0],
-        views: newPost.views !== undefined ? newPost.views : 0,
-        comments: newPost.comments !== undefined ? newPost.comments : 0,
-        board: 'free',
-        createdAt: new Date(),
-      });
-
-      //  저장 후 다시 불러오기
-      const q = query(
-        collection(db, 'posts'),
-        where('board', '==', 'free')
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      const postList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setPosts(postList);
-
-    } catch (error) {
-      console.error('글 저장 실패:', error);
-    }
-  };
+  const { posts, createPost } = useBoardPosts('free');
 
   return (
     <div>
-      <VoiceWriter onPostCreate={handlePostCreate} />
+      <VoiceWriter onPostCreate={createPost} />
 
       <BoardPage
         title="자유게시판"
@@ -77,7 +15,7 @@ function FreeBoard() {
         description="일상부터 취미까지 무엇이든 자유롭게 이야기해요."
         accentColor="#1565c0"
         posts={posts}
-        onAddPost={handlePostCreate}
+        onAddPost={createPost}
       />
     </div>
   );

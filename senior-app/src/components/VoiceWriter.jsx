@@ -15,7 +15,16 @@ function VoiceWriter({ onPostCreate }) {
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
 
-  const startListening = useCallback(() => {
+  // 음성 녹음 관련 ref
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioBlobRef = useRef(null);
+  const audioStreamRef = useRef(null);
+
+  // 오디오 미리듣기 URL
+  const [audioPreviewURL, setAudioPreviewURL] = useState(null);
+
+  const startListening = useCallback(async () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -23,6 +32,45 @@ function VoiceWriter({ onPostCreate }) {
       return;
     }
 
+    // 마이크 스트림 획득 및 MediaRecorder 시작
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+      audioChunksRef.current = [];
+      audioBlobRef.current = null;
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : 'audio/webm',
+      });
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        audioBlobRef.current = blob;
+
+        // 미리듣기 URL 생성
+        if (audioPreviewURL) {
+          URL.revokeObjectURL(audioPreviewURL);
+        }
+        setAudioPreviewURL(URL.createObjectURL(blob));
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+    } catch (err) {
+      console.error('마이크 접근 실패:', err);
+      setError('마이크 접근이 거부되었습니다. 브라우저 설정에서 마이크 권한을 허용해주세요.');
+      return;
+    }
+
+    // SpeechRecognition 설정
     const recognition = new SpeechRecognition();
     recognition.lang = 'ko-KR';
     recognition.continuous = true;
@@ -60,7 +108,7 @@ function VoiceWriter({ onPostCreate }) {
       } else if (event.error === 'no-speech') {
         setError('음성이 감지되지 않았습니다. 다시 시도해주세요.');
       } else if (event.error === 'network') {
-        setError('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
+        setError('음성 인식 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
       } else {
         setError(`음성 인식 오류: ${event.error}`);
       }
@@ -87,11 +135,20 @@ function VoiceWriter({ onPostCreate }) {
     setAiResult(null);
     setError(null);
     recognition.start();
-  }, []);
+  }, [audioPreviewURL]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
+    }
+    // MediaRecorder도 함께 중지
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    // 마이크 스트림 해제
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      audioStreamRef.current = null;
     }
   }, []);
 
@@ -187,6 +244,8 @@ function VoiceWriter({ onPostCreate }) {
         date: new Date().toISOString().split('T')[0],
         views: 0,
         comments: 0,
+        // 녹음된 오디오 Blob 전달
+        audioBlob: audioBlobRef.current || null,
       });
       reset();
     }
@@ -196,13 +255,27 @@ function VoiceWriter({ onPostCreate }) {
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch { }
     }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try { mediaRecorderRef.current.stop(); } catch { }
+    }
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      audioStreamRef.current = null;
+    }
+    if (audioPreviewURL) {
+      URL.revokeObjectURL(audioPreviewURL);
+    }
+
     finalTranscriptRef.current = '';
+    audioBlobRef.current = null;
+    audioChunksRef.current = [];
     setTranscript('');
     setInterimTranscript('');
     setAiResult(null);
     setError(null);
     setStep('idle');
     setIsProcessing(false);
+    setAudioPreviewURL(null);
   };
 
   return (
@@ -245,6 +318,11 @@ function VoiceWriter({ onPostCreate }) {
             )}
           </div>
 
+          <div className="vw-recording-indicator">
+            <span className="vw-rec-dot"></span>
+            <span className="vw-rec-label">녹음 중</span>
+          </div>
+
           <button className="vw-stop-btn" onClick={stopListening}>⏹️ 말하기 완료</button>
         </div>
       )}
@@ -254,6 +332,15 @@ function VoiceWriter({ onPostCreate }) {
         <div className="vw-transcript-ready">
           <h4>📝 인식된 음성 텍스트</h4>
           <div className="vw-transcript-box">{transcript}</div>
+
+          {/* 오디오 미리듣기 */}
+          {audioPreviewURL && (
+            <div className="vw-audio-preview">
+              <label className="vw-audio-label">🔊 녹음된 음성 미리듣기</label>
+              <audio controls src={audioPreviewURL} className="vw-audio-player" />
+            </div>
+          )}
+
           <div className="vw-btn-group">
             <button className="vw-btn vw-btn-secondary" onClick={() => { reset(); startListening(); }}>
               🔄 다시 녹음
@@ -288,6 +375,15 @@ function VoiceWriter({ onPostCreate }) {
             <label className="vw-result-label">📋 요약</label>
             <div className="vw-result-summary">{aiResult.summary}</div>
           </div>
+
+          {/* 오디오 미리듣기 */}
+          {audioPreviewURL && (
+            <div className="vw-audio-preview">
+              <label className="vw-audio-label">🔊 녹음된 음성</label>
+              <audio controls src={audioPreviewURL} className="vw-audio-player" />
+              <p className="vw-audio-note">게시하면 이 음성도 함께 업로드됩니다</p>
+            </div>
+          )}
 
           <details className="vw-compare">
             <summary>🔍 원본 음성 텍스트 비교하기</summary>
