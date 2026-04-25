@@ -1,4 +1,10 @@
 import { Link } from 'react-router-dom';
+
+/* ⭐ 추가 */
+import { useEffect, useState } from 'react';
+import { db } from '../firebase/config';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+
 import './Home.css';
 
 const cards = [
@@ -36,37 +42,89 @@ const cards = [
   },
 ];
 
-const notices = [
-  { id: 1, title: '5월 이달의 주제: "내가 가장 좋아하는 계절 여행지"', date: '2025-05-01' },
-  { id: 2, title: '커뮤니티 이용 안내 및 에티켓 공지', date: '2025-04-28' },
-  { id: 3, title: '교육 게시판 "스마트폰 사진 잘 찍는 법" 신규 등록', date: '2025-04-25' },
-];
-
 function Home() {
+
+  /* ⭐ 기존 notices 배열 삭제 → state로 변경 */
+  const [notices, setNotices] = useState([]);
+
+  /* ⭐ 추가: Firebase 공지 불러오기 */
+  useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        const q = query(
+          collection(db, 'notice'),
+          orderBy('createdAt', 'desc'),
+          limit(3)
+        );
+
+        const data = await getDocs(q);
+
+        setNotices(
+          data.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchNotices();
+  }, []);
+
   return (
     <div className="home">
       {/* 히어로 배너 */}
       <section className="hero-banner">
         <div className="hero-content">
           <h1>🌿 환영합니다!</h1>
-          <p>시니어 커뮤니티에 오신 걸 환영해요.<br />함께 이야기하고, 배우고, 즐겨봐요.</p>
+          <p>
+            시니어 커뮤니티에 오신 걸 환영해요.
+            <br />
+            함께 이야기하고, 배우고, 즐겨봐요.
+          </p>
         </div>
       </section>
 
       {/* 공지사항 */}
       <section className="section">
-        <h2 className="section-title">📢 공지사항</h2>
+        <div className="section-header">
+          <h2 className="section-title">📢 공지사항</h2>
+
+          <Link to="/notice" className="more-btn">
+            더보기 →
+          </Link>
+        </div>
+
         <ul className="notice-list">
+          {/* ⭐ 여기만 Firebase 데이터로 변경 */}
           {notices.map((n) => (
             <li key={n.id} className="notice-item">
-              <span className="notice-title">{n.title}</span>
-              <span className="notice-date">{n.date}</span>
+              <Link
+                to={`/notice/${n.id}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                }}
+              >
+                <span className="notice-title">{n.title}</span>
+
+                <span className="notice-date">
+                  {n.createdAt?.toDate
+                    ? n.createdAt.toDate().toLocaleDateString()
+                    : ''}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      {/* 게시판 바로가기 */}
+      {/* 게시판 바로가기 (절대 수정 안함) */}
       <section className="section">
         <h2 className="section-title">📌 게시판 바로가기</h2>
         <div className="card-grid">
@@ -75,7 +133,10 @@ function Home() {
               key={card.path}
               to={card.path}
               className="board-card"
-              style={{ backgroundColor: card.color, borderLeft: `5px solid ${card.border}` }}
+              style={{
+                backgroundColor: card.color,
+                borderLeft: `5px solid ${card.border}`,
+              }}
             >
               <span className="card-emoji">{card.emoji}</span>
               <h3 className="card-title">{card.title}</h3>

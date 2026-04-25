@@ -6,7 +6,8 @@ import Counseling from './pages/Counseling';
 import FreeBoard from './pages/FreeBoard';
 import Education from './pages/Education';
 import './App.css';
-
+import Notice from './pages/Notice'; // ⭐ 추가
+import NoticeDetail from './pages/NoticeDetail';
 function App() {
   return (
     <Router>
@@ -19,6 +20,9 @@ function App() {
             <Route path="/counseling" element={<Counseling />} />
             <Route path="/freeboard" element={<FreeBoard />} />
             <Route path="/education" element={<Education />} />
+                {/* ⭐ 추가: 공지사항 페이지 라우팅 */}
+            <Route path="/notice" element={<Notice />} />
+            <Route path="/notice/:id" element={<NoticeDetail />} />
           </Routes>
         </main>
         <footer className="footer">
