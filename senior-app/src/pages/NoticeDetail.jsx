@@ -36,7 +36,10 @@ function NoticeDetail() {
       <h2 className="section-title">{notice.title}</h2>
 
       {/* 내용 */}
-      <div style={{ marginTop: '20px', lineHeight: '1.6' }}>
+      <div style={{
+        marginTop: '20px', lineHeight: '1.6',
+        whiteSpace: 'pre-line'
+      }}>
         {notice.content}
       </div>
 

@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { getSavedNickname, saveNickname } from '../utils/user';
 import './VoiceWriter.css';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -11,6 +12,12 @@ function VoiceWriter({ onPostCreate }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [step, setStep] = useState('idle');
+  const [nickname, setNickname] = useState('');
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    setNickname(getSavedNickname());
+  }, []);
 
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef('');
@@ -235,12 +242,19 @@ function VoiceWriter({ onPostCreate }) {
   };
 
   const handlePublish = () => {
+    if (!password.trim()) {
+      alert('게시글을 안전하게 수정/삭제하기 위해 비밀번호를 입력해주세요.');
+      return;
+    }
+    
     if (aiResult && onPostCreate) {
+      saveNickname(nickname);
       onPostCreate({
         id: Date.now(),
         title: aiResult.title,
         content: aiResult.content,
-        author: '음성작성자 🎤',
+        author: nickname,
+        password: password,
         date: new Date().toISOString().split('T')[0],
         views: 0,
         comments: 0,
@@ -389,6 +403,23 @@ function VoiceWriter({ onPostCreate }) {
             <summary>🔍 원본 음성 텍스트 비교하기</summary>
             <div className="vw-original-text">{transcript}</div>
           </details>
+
+          <div className="vw-auth-inputs" style={{ display: 'flex', gap: '10px', marginTop: '20px', marginBottom: '10px' }}>
+            <input
+              type="text"
+              placeholder="닉네임 (미입력시 수줍은시니어)"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+            <input
+              type="password"
+              placeholder="비밀번호 (수정/삭제용)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
 
           <div className="vw-btn-group">
             <button className="vw-btn vw-btn-secondary" onClick={reset}>🔄 처음부터</button>

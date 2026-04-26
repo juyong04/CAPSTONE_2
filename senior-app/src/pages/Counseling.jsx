@@ -3,7 +3,7 @@ import VoiceWriter from '../components/VoiceWriter';
 import useBoardPosts from '../hooks/useBoardPosts';
 
 function Counseling() {
-  const { posts, createPost } = useBoardPosts('counseling');
+  const { posts, createPost, updatePost, deletePost } = useBoardPosts('counseling');
 
   return (
     <div>
@@ -16,6 +16,8 @@ function Counseling() {
         accentColor="#f9a825"
         posts={posts}
         onAddPost={createPost}
+        onEditPost={updatePost}
+        onDeletePost={deletePost}
       />
     </div>
   );

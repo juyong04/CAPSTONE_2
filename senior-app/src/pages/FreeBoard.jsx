@@ -3,7 +3,7 @@ import VoiceWriter from '../components/VoiceWriter';
 import useBoardPosts from '../hooks/useBoardPosts';
 
 function FreeBoard() {
-  const { posts, createPost } = useBoardPosts('free');
+  const { posts, createPost, updatePost, deletePost } = useBoardPosts('free');
 
   return (
     <div>
@@ -16,6 +16,8 @@ function FreeBoard() {
         accentColor="#1565c0"
         posts={posts}
         onAddPost={createPost}
+        onEditPost={updatePost}
+        onDeletePost={deletePost}
       />
     </div>
   );

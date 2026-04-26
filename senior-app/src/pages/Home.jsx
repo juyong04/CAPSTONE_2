@@ -52,19 +52,23 @@ function Home() {
     const fetchNotices = async () => {
       try {
         const q = query(
-          collection(db, 'notice'),
-          orderBy('createdAt', 'desc'),
-          limit(3)
+          collection(db, 'notice')
         );
 
         const data = await getDocs(q);
 
-        setNotices(
-          data.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }))
-        );
+        let noticeList = data.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        noticeList.sort((a, b) => {
+          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.date ? new Date(a.date).getTime() : 0);
+          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.date ? new Date(b.date).getTime() : 0);
+          return timeB - timeA;
+        });
+
+        setNotices(noticeList.slice(0, 3));
       } catch (error) {
         console.error(error);
       }
