@@ -1,15 +1,22 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
+// Firebase 설정 - 환경변수 사용 (.env 파일에서 관리)
 const firebaseConfig = {
-  apiKey: "AIzaSyBVa43WWRo449K5m6g0MSuO1ZRDDB9_-_U",
-  authDomain: "capstone2-a7107.firebaseapp.com",
-  projectId: "capstone2-a7107",
-  storageBucket: "capstone2-a7107.firebasestorage.app",
-  messagingSenderId: "250261611850",
-  appId: "1:250261611850:web:730ea8d8134f93306d8db3",
-  measurementId: "G-8QBGN7F4W4"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
 
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);
 export default app;
