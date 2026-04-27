@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getSavedNickname, saveNickname } from '../utils/user';
 import { hashPassword } from '../utils/crypto';
 import './BoardPage.css';
@@ -12,6 +13,7 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [selectedPost, setSelectedPost] = useState(null);
+  const location = useLocation();
 
   // 관리(수정/삭제/고정) 모드 관련 상태
   const [isManageMode, setIsManageMode] = useState(false);
@@ -24,6 +26,18 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
   useEffect(() => {
     setNickname(getSavedNickname());
   }, []);
+
+  // Check URL for postId query parameter to auto-open post
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const postIdParam = params.get('postId');
+    if (postIdParam && posts.length > 0 && !selectedPost) {
+      const foundPost = posts.find(p => p.id.toString() === postIdParam);
+      if (foundPost) {
+        setSelectedPost(foundPost);
+      }
+    }
+  }, [location.search, posts, selectedPost]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

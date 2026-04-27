@@ -8,11 +8,14 @@ import Education from './pages/Education';
 import './App.css';
 import Notice from './pages/Notice'; // ⭐ 추가
 import NoticeDetail from './pages/NoticeDetail';
+import GrandsonSearch from './components/GrandsonSearch';
+
 function App() {
   return (
     <Router>
       <div className="app-wrapper">
         <Navbar />
+        <GrandsonSearch />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />

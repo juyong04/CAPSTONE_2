@@ -5,10 +5,12 @@ import './VoiceWriter.css';
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 function VoiceWriter({ onPostCreate }) {
+  // eslint-disable-next-line no-unused-vars
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [aiResult, setAiResult] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [step, setStep] = useState('idle');
@@ -267,10 +269,10 @@ function VoiceWriter({ onPostCreate }) {
 
   const reset = () => {
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch { }
+      try { recognitionRef.current.stop(); } catch (err) { console.debug(err); }
     }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try { mediaRecorderRef.current.stop(); } catch { }
+      try { mediaRecorderRef.current.stop(); } catch (err) { console.debug(err); }
     }
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach((track) => track.stop());
