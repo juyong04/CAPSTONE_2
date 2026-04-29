@@ -4,7 +4,7 @@ import { getSavedNickname, saveNickname } from '../utils/user';
 import { hashPassword } from '../utils/crypto';
 import './BoardPage.css';
 
-function BoardPage({ title, emoji, description, accentColor, posts: externalPosts, onAddPost, onEditPost, onDeletePost }) {
+function BoardPage({ title, emoji, description, accentColor, posts: externalPosts, onAddPost, onEditPost, onDeletePost, onIncrementViews, onLikePost, onUnlikePost, onAddComment, onDeleteComment, onUpdateComment }) {
   const [internalPosts, setInternalPosts] = useState(externalPosts);
   const posts = onAddPost ? externalPosts : internalPosts;
   const [showForm, setShowForm] = useState(false);
@@ -22,6 +22,10 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [newComment, setNewComment] = useState('');
+  const [commentPassword, setCommentPassword] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState('');
 
   useEffect(() => {
     setNickname(getSavedNickname());
@@ -38,6 +42,18 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
       }
     }
   }, [location.search, posts, selectedPost]);
+
+  // 조회수 증가 처리 (세션 스토리지 활용하여 중복 방지)
+  useEffect(() => {
+    if (selectedPost && onIncrementViews) {
+      const viewedKey = `viewed_${selectedPost.id}`;
+      if (!sessionStorage.getItem(viewedKey)) {
+        onIncrementViews(selectedPost.id);
+        sessionStorage.setItem(viewedKey, 'true');
+        setSelectedPost(prev => ({...prev, views: (prev.views || 0) + 1}));
+      }
+    }
+  }, [selectedPost?.id, onIncrementViews]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -101,6 +117,91 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
     setAuthLevel(null);
     setManagePassword('');
     setIsEditing(false);
+  };
+
+  const handleLike = () => {
+    if (!onLikePost || !onUnlikePost) return;
+    const likedKey = `liked_${selectedPost.id}`;
+    if (localStorage.getItem(likedKey)) {
+      onUnlikePost(selectedPost.id);
+      localStorage.removeItem(likedKey);
+      setSelectedPost(prev => ({...prev, likes: Math.max((prev.likes || 0) - 1, 0)}));
+    } else {
+      onLikePost(selectedPost.id);
+      localStorage.setItem(likedKey, 'true');
+      setSelectedPost(prev => ({...prev, likes: (prev.likes || 0) + 1}));
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!onAddComment || !newComment.trim()) return;
+    saveNickname(nickname);
+
+    let hashed = '';
+    if (commentPassword) {
+      hashed = await hashPassword(commentPassword);
+    }
+
+    const commentObj = {
+      id: Date.now(),
+      text: newComment,
+      author: nickname || '수줍은시니어',
+      password: hashed,
+      date: new Date().toISOString().split('T')[0],
+    };
+    onAddComment(selectedPost.id, commentObj);
+    
+    setSelectedPost(prev => ({
+      ...prev,
+      commentList: [...(prev.commentList || []), commentObj],
+      comments: (prev.comments || 0) + 1
+    }));
+    setNewComment('');
+    setCommentPassword('');
+  };
+
+  const verifyCommentPassword = async (comment) => {
+    if (authLevel === 'admin') return true;
+    if (!comment.password) return true;
+
+    const inputPw = window.prompt('댓글 비밀번호를 입력하세요:');
+    if (inputPw === null) return false;
+    const hashed = await hashPassword(inputPw);
+    if (hashed === comment.password) {
+      return true;
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+      return false;
+    }
+  };
+
+  const handleDeleteComment = async (comment) => {
+    if(!onDeleteComment) return;
+    const isVerified = await verifyCommentPassword(comment);
+    if (!isVerified) return;
+
+    if(window.confirm('댓글을 삭제하시겠습니까?')) {
+      onDeleteComment(selectedPost.id, comment);
+      setSelectedPost(prev => ({
+        ...prev,
+        commentList: (prev.commentList || []).filter(c => c.id !== comment.id),
+        comments: Math.max((prev.comments || 0) - 1, 0)
+      }));
+    }
+  };
+
+  const handleUpdateCommentSave = async (comment) => {
+    if (!onUpdateComment || !editCommentText.trim()) return;
+    const isVerified = await verifyCommentPassword(comment);
+    if (!isVerified) return;
+
+    onUpdateComment(selectedPost.id, comment, editCommentText);
+    setSelectedPost(prev => ({
+      ...prev,
+      commentList: (prev.commentList || []).map(c => c.id === comment.id ? { ...c, text: editCommentText } : c)
+    }));
+    setEditingCommentId(null);
+    setEditCommentText('');
   };
 
   if (selectedPost) {
@@ -192,6 +293,96 @@ function BoardPage({ title, emoji, description, accentColor, posts: externalPost
               )}
 
               <div className="post-detail-content">{selectedPost.content}</div>
+
+              {/* 좋아요 버튼 (중앙 하단) */}
+              <div style={{ display: 'flex', justifyContent: 'center', margin: '30px 0' }}>
+                <button 
+                  onClick={handleLike}
+                  style={{
+                    padding: '10px 20px',
+                    fontSize: '1.2rem',
+                    borderRadius: '20px',
+                    border: `2px solid ${accentColor}`,
+                    background: 'white',
+                    color: accentColor,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = accentColor; e.currentTarget.style.color = 'white'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = accentColor; }}
+                >
+                  ❤️ 좋아요 {selectedPost.likes || 0}
+                </button>
+              </div>
+
+              {/* 댓글 섹션 */}
+              <div className="comments-section" style={{ marginTop: '20px', borderTop: '1px solid #ddd', paddingTop: '20px', textAlign: 'left' }}>
+                <h3 style={{fontSize: '1.1rem', marginBottom: '15px'}}>댓글 {(selectedPost.comments || 0)}개</h3>
+                <ul className="comment-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {(selectedPost.commentList || []).map(comment => (
+                    <li key={comment.id} style={{ padding: '12px 0', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <strong style={{ fontSize: '0.95rem' }}>{comment.author}</strong> 
+                          <span style={{fontSize: '0.8rem', color: '#888'}}>{comment.date}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.text); }} style={{ background: 'transparent', border: 'none', color: '#3498db', cursor: 'pointer', padding: '0 4px' }}>수정</button>
+                          <button onClick={() => handleDeleteComment(comment)} style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '0 4px' }}>삭제</button>
+                        </div>
+                      </div>
+                      
+                      {editingCommentId === comment.id ? (
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                          <input 
+                            type="text" 
+                            value={editCommentText}
+                            onChange={e => setEditCommentText(e.target.value)}
+                            style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                          />
+                          <button onClick={() => handleUpdateCommentSave(comment)} style={{ padding: '8px 12px', background: accentColor, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>저장</button>
+                          <button onClick={() => setEditingCommentId(null)} style={{ padding: '8px 12px', background: '#aaa', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>취소</button>
+                        </div>
+                      ) : (
+                        <p style={{ margin: 0, color: '#333', fontSize: '0.95rem', lineHeight: '1.4' }}>{comment.text}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <div className="comment-form" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', background: '#f9f9f9', padding: '15px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="닉네임 (미입력시 수줍은시니어)" 
+                      value={nickname}
+                      onChange={e => setNickname(e.target.value)}
+                      style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                    />
+                    <input 
+                      type="password" 
+                      placeholder="비밀번호 (수정/삭제용)" 
+                      value={commentPassword}
+                      onChange={e => setCommentPassword(e.target.value)}
+                      style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="댓글을 남겨보세요" 
+                      value={newComment}
+                      onChange={e => setNewComment(e.target.value)}
+                      onKeyPress={e => e.key === 'Enter' && handleAddComment()}
+                      style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ccc', outline: 'none' }}
+                    />
+                    <button onClick={handleAddComment} style={{ padding: '12px 20px', background: accentColor, color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>등록</button>
+                  </div>
+                </div>
+              </div>
             </>
           ) : (
             <div className="edit-form" style={{ marginTop: '20px' }}>

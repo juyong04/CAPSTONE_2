@@ -3,7 +3,7 @@ import VoiceWriter from '../components/VoiceWriter';
 import useBoardPosts from '../hooks/useBoardPosts';
 
 function FreeBoard() {
-  const { posts, createPost, updatePost, deletePost } = useBoardPosts('free');
+  const { posts, createPost, updatePost, deletePost, incrementViews, likePost, unlikePost, addComment, deleteComment, updateComment } = useBoardPosts('free');
 
   return (
     <div>
@@ -18,6 +18,12 @@ function FreeBoard() {
         onAddPost={createPost}
         onEditPost={updatePost}
         onDeletePost={deletePost}
+        onIncrementViews={incrementViews}
+        onLikePost={likePost}
+        onUnlikePost={unlikePost}
+        onAddComment={addComment}
+        onDeleteComment={deleteComment}
+        onUpdateComment={updateComment}
       />
     </div>
   );

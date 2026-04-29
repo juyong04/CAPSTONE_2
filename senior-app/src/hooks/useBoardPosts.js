@@ -9,6 +9,9 @@ import {
   doc,
   query,
   where,
+  increment,
+  arrayUnion,
+  arrayRemove,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { hashPassword } from '../utils/crypto';
@@ -112,6 +115,8 @@ export default function useBoardPosts(boardId) {
           date: newPost.date || new Date().toISOString().split('T')[0],
           views: newPost.views !== undefined ? newPost.views : 0,
           comments: newPost.comments !== undefined ? newPost.comments : 0,
+          likes: 0,
+          commentList: [],
           board: boardId,
           createdAt: new Date(),
           ...(audioURL && { audioURL }),
@@ -156,5 +161,81 @@ export default function useBoardPosts(boardId) {
     [loadPosts]
   );
 
-  return { posts, loading, createPost, updatePost, deletePost };
+  // 조회수 증가
+  const incrementViews = useCallback(async (postId) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, { views: increment(1) });
+    } catch (error) {
+      console.error('조회수 증가 실패:', error);
+    }
+  }, []);
+
+  // 좋아요 증가
+  const likePost = useCallback(async (postId) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, { likes: increment(1) });
+    } catch (error) {
+      console.error('좋아요 증가 실패:', error);
+    }
+  }, []);
+
+  // 좋아요 취소
+  const unlikePost = useCallback(async (postId) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, { likes: increment(-1) });
+    } catch (error) {
+      console.error('좋아요 취소 실패:', error);
+    }
+  }, []);
+
+  // 댓글 추가
+  const addComment = useCallback(async (postId, comment) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        commentList: arrayUnion(comment),
+        comments: increment(1)
+      });
+      await loadPosts();
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+    }
+  }, [loadPosts]);
+
+  // 댓글 삭제
+  const deleteComment = useCallback(async (postId, comment) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        commentList: arrayRemove(comment),
+        comments: increment(-1)
+      });
+      await loadPosts();
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+    }
+  }, [loadPosts]);
+
+  // 댓글 수정
+  const updateComment = useCallback(async (postId, oldComment, newText) => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      // 기존 객체 삭제 후 새 객체 추가 (순서가 마지막으로 밀릴 수 있지만 간단한 구현)
+      await updateDoc(postRef, {
+        commentList: arrayRemove(oldComment)
+      });
+      const updatedComment = { ...oldComment, text: newText };
+      await updateDoc(postRef, {
+        commentList: arrayUnion(updatedComment)
+      });
+      await loadPosts();
+    } catch (error) {
+      console.error('댓글 수정 실패:', error);
+    }
+  }, [loadPosts]);
+
+  return { posts, loading, createPost, updatePost, deletePost, incrementViews, likePost, unlikePost, addComment, deleteComment, updateComment };
 }
