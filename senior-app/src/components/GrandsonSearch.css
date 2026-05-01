@@ -1,297 +1,241 @@
-.grandson-ai-container {
+/* ── 오버레이 ── */
+.gs-overlay {
   position: fixed;
-  bottom: 80px;
-  right: 30px;
+  inset: 0;
+  background: rgba(0, 0, 0, .4);
+  z-index: 999;
+  animation: gs-fade-in .2s ease;
+}
+
+@keyframes gs-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── 하프시트 ── */
+.gs-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80dvh;
+  max-height: 80dvh;
+  background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  animation: gs-slide-up .3s ease;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, .15);
 }
 
-.grandson-fab {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background-color: #f39c12;
-  color: white;
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
+@keyframes gs-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ── 핸들 ── */
+.gs-handle {
   display: flex;
   justify-content: center;
-  align-items: center;
-  font-size: 2.5rem;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-  z-index: 1001;
-}
-
-.grandson-fab:hover {
-  transform: scale(1.1);
-  background-color: #e67e22;
-}
-
-.grandson-chat-modal {
-  position: absolute;
-  bottom: 80px;
-  right: 0;
-  width: 350px;
-  max-height: 500px;
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: slideUp 0.3s ease-out forwards;
-  box-sizing: border-box;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.grandson-chat-header {
-  background-color: #f39c12;
-  color: white;
-  padding: 15px;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.close-chat-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
+  padding: 10px 0 4px;
   cursor: pointer;
-  padding: 0 5px;
 }
 
-.grandson-chat-body {
+.gs-handle-bar {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--border);
+}
+
+/* ── 헤더 ── */
+.gs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 12px;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.gs-close {
+  background: none;
+  font-size: 1.4rem;
+  color: var(--text-hint);
+  padding: 8px;
+  border-radius: var(--r-full);
+  transition: background var(--ease);
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gs-close:hover { background: var(--surface-alt); }
+
+/* ── 채팅 본문 ── */
+.gs-body {
   flex: 1;
-  padding: 15px;
   overflow-y: auto;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background-color: #fdfaf6;
-  min-height: 300px;
-  max-height: 400px;
+  background: var(--surface-alt);
 }
 
-.chat-message {
+.gs-msg {
   max-width: 85%;
   padding: 12px 16px;
-  border-radius: 16px;
-  font-size: 1.05rem;
-  line-height: 1.4;
+  border-radius: var(--r-lg);
+  font-size: var(--fs-base);
+  line-height: 1.55;
   word-break: break-word;
 }
 
-.chat-message.ai {
+.gs-msg-ai {
   align-self: flex-start;
-  background-color: white;
-  border: 1px solid #e0e0e0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
 }
 
-.chat-message.user {
+.gs-msg-user {
   align-self: flex-end;
-  background-color: #ffeaa7;
+  background: var(--primary-lighter);
+  border: 1px solid var(--border);
   border-bottom-right-radius: 4px;
+  color: var(--text);
 }
 
-.chat-message.loading {
+.gs-msg-loading {
   align-self: flex-start;
-  background-color: transparent;
-  color: #888;
+  background: transparent;
+  color: var(--text-hint);
   font-style: italic;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
-.dot-flashing {
-  position: relative;
+/* ── 로딩 점 ── */
+.gs-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.gs-dots span {
   width: 6px;
   height: 6px;
-  border-radius: 5px;
-  background-color: #f39c12;
-  color: #f39c12;
-  animation: dot-flashing 1s infinite linear alternate;
-  animation-delay: 0.5s;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: gs-blink 1.2s infinite;
 }
 
-.dot-flashing::before,
-.dot-flashing::after {
-  content: '';
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  width: 6px;
-  height: 6px;
-  border-radius: 5px;
-  background-color: #f39c12;
-  color: #f39c12;
+.gs-dots span:nth-child(2) { animation-delay: .2s; }
+.gs-dots span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes gs-blink {
+  0%, 80%, 100% { opacity: .3; }
+  40%           { opacity: 1; }
 }
 
-.dot-flashing::before {
-  left: -10px;
-  animation: dot-flashing 1s infinite alternate;
-  animation-delay: 0s;
-}
-
-.dot-flashing::after {
-  left: 10px;
-  animation: dot-flashing 1s infinite alternate;
-  animation-delay: 1s;
-}
-
-@keyframes dot-flashing {
-  0% {
-    background-color: #f39c12;
-  }
-
-  50%,
-  100% {
-    background-color: #fcd5ce;
-  }
-}
-
-.grandson-chat-input-area {
-  padding: 12px;
-  background-color: white;
-  border-top: 1px solid #e0e0e0;
+/* ── 입력 영역 ── */
+.gs-input-area {
   display: flex;
   gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
   align-items: center;
-  box-sizing: border-box;
-  width: 100%;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
 }
 
-.grandson-chat-input {
+.gs-input {
   flex: 1;
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  font-size: 1rem;
-  outline: none;
-  box-sizing: border-box;
-  min-width: 0;
+  padding: 10px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-full);
+  min-height: 44px;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color var(--ease);
 }
 
-.grandson-chat-input:focus {
-  border-color: #f39c12;
-}
+.gs-input:focus { border-color: var(--primary); }
 
-.grandson-mic-btn {
-  background-color: transparent;
-  color: #f39c12;
-  border: 1px solid #f39c12;
+/* ── 마이크 버튼 ── */
+.gs-mic {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border: 2px solid var(--secondary);
+  background: transparent;
+  color: var(--secondary);
   display: flex;
-  justify-content: center;
   align-items: center;
-  cursor: pointer;
+  justify-content: center;
   font-size: 1.2rem;
-  transition: all 0.2s;
   flex-shrink: 0;
+  transition: all var(--ease);
 }
 
-.grandson-mic-btn:hover {
-  background-color: #fff3e0;
+.gs-mic:hover { background: var(--secondary-lighter); }
+
+.gs-mic-on {
+  background: var(--danger) !important;
+  color: #fff !important;
+  border-color: var(--danger) !important;
+  animation: gs-pulse 1.5s infinite;
 }
 
-.grandson-mic-btn.listening {
-  background-color: #e74c3c;
-  color: white;
-  border-color: #e74c3c;
-  animation: pulse-mic 1.5s infinite;
+@keyframes gs-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(197, 48, 48, .5); }
+  70%  { box-shadow: 0 0 0 10px rgba(197, 48, 48, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(197, 48, 48, 0); }
 }
 
-@keyframes pulse-mic {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
-  }
-
-  70% {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
-  }
-}
-
-.grandson-chat-send-btn {
-  background-color: #f39c12;
-  color: white;
-  border: none;
+/* ── 전송 버튼 ── */
+.gs-send {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  background: var(--primary);
+  color: #fff;
   display: flex;
-  justify-content: center;
   align-items: center;
-  cursor: pointer;
+  justify-content: center;
   font-size: 1.2rem;
-  transition: background-color 0.2s;
+  font-weight: 700;
   flex-shrink: 0;
+  transition: all var(--ease);
 }
 
-.grandson-chat-send-btn:hover:not(:disabled) {
-  background-color: #e67e22;
-}
+.gs-send:hover:not(:disabled) { transform: scale(1.05); }
+.gs-send:disabled { background: var(--border); cursor: not-allowed; }
 
-.grandson-chat-send-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
+/* ── AI 링크 ── */
 .ai-post-link {
   display: inline-block;
-  margin-top: 8px;
+  margin: 4px 0;
   padding: 6px 12px;
-  background-color: #fff3e0;
-  border: 1px solid #ffcc80;
-  border-radius: 8px;
-  color: #e65100;
+  background: var(--primary-lighter);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--primary);
+  font-size: var(--fs-sm);
+  font-weight: 600;
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all var(--ease);
 }
 
 .ai-post-link:hover {
-  background-color: #ffe0b2;
-}
-
-@media (max-width: 480px) {
-  .grandson-ai-container {
-    right: 20px;
-    bottom: 20px;
-  }
-  
-  .grandson-chat-modal {
-    width: calc(100vw - 40px);
-    right: 0;
-  }
+  background: var(--primary);
+  color: #fff;
 }

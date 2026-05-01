@@ -1,150 +1,83 @@
 import { Link } from 'react-router-dom';
-
-/* ⭐ 추가 */
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-
+import { collection, getDocs, query } from 'firebase/firestore';
 import './Home.css';
 
-const cards = [
-  {
-    path: '/monthly-topic',
-    emoji: '💬',
-    title: '이달의 주제',
-    desc: '매달 새로운 주제로 함께 이야기를 나눠요',
-    color: '#e8f5e9',
-    border: '#3a7d44',
-  },
-  {
-    path: '/counseling',
-    emoji: '🤝',
-    title: '고민상담',
-    desc: '혼자 해결하기 어려운 고민을 함께 나눠요',
-    color: '#fff8e1',
-    border: '#f9a825',
-  },
-  {
-    path: '/freeboard',
-    emoji: '🗣️',
-    title: '자유게시판',
-    desc: '일상부터 취미까지 자유롭게 이야기해요',
-    color: '#e3f2fd',
-    border: '#1565c0',
-  },
-  {
-    path: '/education',
-    emoji: '📚',
-    title: '교육 게시판',
-    desc: '건강·디지털·취미 등 유익한 정보를 나눠요',
-    color: '#fce4ec',
-    border: '#c62828',
-  },
+const boards = [
+  { key: 'monthly', path: '/board?tab=monthly', emoji: '💬', title: '이달의 주제', desc: '매달 새로운 주제로 이야기', color: '#2D7A4F' },
+  { key: 'counseling', path: '/board?tab=counseling', emoji: '🤝', title: '고민상담', desc: '함께 나누는 고민 이야기', color: '#D4860B' },
+  { key: 'free', path: '/board?tab=free', emoji: '🗣️', title: '자유게시판', desc: '자유롭게 소통해요', color: '#2B6CB0' },
+  { key: 'education', path: '/board?tab=education', emoji: '📚', title: '교육 게시판', desc: '유익한 정보 나눔', color: '#8E44AD' },
 ];
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 6) return { text: '편안한 밤 보내고 계신가요?', icon: '🌙' };
+  if (h < 12) return { text: '좋은 아침이에요!', icon: '🌅' };
+  if (h < 18) return { text: '활기찬 오후 보내세요!', icon: '☀️' };
+  return { text: '편안한 저녁 시간 되세요!', icon: '🌆' };
+}
+
 function Home() {
-
-  /* ⭐ 기존 notices 배열 삭제 → state로 변경 */
   const [notices, setNotices] = useState([]);
+  const greeting = getGreeting();
 
-  /* ⭐ 추가: Firebase 공지 불러오기 */
   useEffect(() => {
-    const fetchNotices = async () => {
+    (async () => {
       try {
-        const q = query(
-          collection(db, 'notice')
-        );
-
-        const data = await getDocs(q);
-
-        let noticeList = data.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
-        noticeList.sort((a, b) => {
-          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.date ? new Date(a.date).getTime() : 0);
-          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.date ? new Date(b.date).getTime() : 0);
-          return timeB - timeA;
+        const data = await getDocs(query(collection(db, 'notice')));
+        let list = data.docs.map(d => ({ id: d.id, ...d.data() }));
+        list.sort((a, b) => {
+          const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return tb - ta;
         });
-
-        setNotices(noticeList.slice(0, 3));
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchNotices();
+        setNotices(list.slice(0, 3));
+      } catch (e) { console.error(e); }
+    })();
   }, []);
 
   return (
     <div className="home">
-      {/* 히어로 배너 */}
-      <section className="hero-banner">
-        <div className="hero-content">
-          <h1>🌿 환영합니다!</h1>
-          <p>
-            시니어 커뮤니티에 오신 걸 환영해요.
-            <br />
-            함께 이야기하고, 배우고, 즐겨봐요.
-          </p>
+      {/* 인사 카드 */}
+      <section className="greeting-card">
+        <span className="greeting-icon">{greeting.icon}</span>
+        <div>
+          <p className="greeting-text">{greeting.text}</p>
+          <p className="greeting-sub">시니어 커뮤니티에 오신 걸 환영해요</p>
         </div>
       </section>
 
-      {/* 공지사항 */}
-      <section className="section">
-        <div className="section-header">
-          <h2 className="section-title">📢 공지사항</h2>
-
-          <Link to="/notice" className="more-btn">
-            더보기 →
-          </Link>
+      {/* 공지 */}
+      <section className="home-section">
+        <div className="home-section-head">
+          <h2>📢 공지사항</h2>
+          <Link to="/notice" className="more-link">더보기 →</Link>
         </div>
-
         <ul className="notice-list">
-          {/* ⭐ 여기만 Firebase 데이터로 변경 */}
-          {notices.map((n) => (
-            <li key={n.id} className="notice-item">
-              <Link
-                to={`/notice/${n.id}`}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
-              >
+          {notices.length === 0 && <li className="notice-empty">공지사항이 없습니다.</li>}
+          {notices.map(n => (
+            <li key={n.id}>
+              <Link to={`/notice/${n.id}`} className="notice-row">
+                <span className="notice-dot" />
                 <span className="notice-title">{n.title}</span>
-
-                <span className="notice-date">
-                  {n.createdAt?.toDate
-                    ? n.createdAt.toDate().toLocaleDateString()
-                    : ''}
-                </span>
+                <span className="notice-date">{n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : ''}</span>
               </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      {/* 게시판 바로가기 (절대 수정 안함) */}
-      <section className="section">
-        <h2 className="section-title">📌 게시판 바로가기</h2>
-        <div className="card-grid">
-          {cards.map((card) => (
-            <Link
-              key={card.path}
-              to={card.path}
-              className="board-card"
-              style={{
-                backgroundColor: card.color,
-                borderLeft: `5px solid ${card.border}`,
-              }}
-            >
-              <span className="card-emoji">{card.emoji}</span>
-              <h3 className="card-title">{card.title}</h3>
-              <p className="card-desc">{card.desc}</p>
+      {/* 게시판 그리드 */}
+      <section className="home-section">
+        <h2>📌 게시판 바로가기</h2>
+        <div className="board-grid">
+          {boards.map(b => (
+            <Link key={b.key} to={b.path} className="board-shortcut" style={{ '--accent': b.color }}>
+              <span className="board-shortcut-emoji">{b.emoji}</span>
+              <strong className="board-shortcut-title">{b.title}</strong>
+              <span className="board-shortcut-desc">{b.desc}</span>
             </Link>
           ))}
         </div>

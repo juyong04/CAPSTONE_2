@@ -1,0 +1,6 @@
+.board-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 16px 40px;
+  overflow: hidden;
+}

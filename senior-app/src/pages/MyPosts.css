@@ -1,0 +1,132 @@
+/* ── 레이아웃 ── */
+.my-posts {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  overflow: hidden;
+}
+
+.my-posts-header { margin-bottom: 20px; }
+
+.my-posts-header h1 {
+  font-size: var(--fs-xl);
+  margin-bottom: 4px;
+}
+
+.my-posts-hint {
+  font-size: var(--fs-sm);
+  color: var(--text-hint);
+}
+
+/* ── 빈 상태 ── */
+.my-posts-empty {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 48px;
+  text-align: center;
+  color: var(--text-hint);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.my-posts-empty-icon { font-size: 3rem; }
+
+.my-posts-link {
+  color: var(--primary);
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--r-md);
+  background: var(--primary-lighter);
+  transition: all var(--ease);
+}
+
+.my-posts-link:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ── 목록 ── */
+.my-posts-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── 카드 ── */
+.my-post-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--ease);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.my-post-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.my-post-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-post-badge {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  background: var(--primary-lighter);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+}
+
+.my-post-date {
+  font-size: var(--fs-xs);
+  color: var(--text-hint);
+}
+
+.my-post-title {
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-post-preview {
+  font-size: var(--fs-sm);
+  color: var(--text-sub);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.my-post-stats {
+  display: flex;
+  gap: 14px;
+  font-size: var(--fs-xs);
+  color: var(--text-hint);
+}
+
+/* ── 모바일 ── */
+@media (max-width: 480px) {
+  .my-post-card { padding: 14px 16px; }
+  .my-post-top  { flex-wrap: wrap; gap: 6px; }
+}

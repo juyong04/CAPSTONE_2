@@ -1,0 +1,48 @@
+/* ── 상단 헤더 ── */
+.top-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 900;
+  backdrop-filter: blur(12px);
+}
+
+.top-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.top-header-icon  { font-size: 1.4rem; }
+
+.top-header-title {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -.02em;
+}
+
+.top-header-action {
+  font-size: 1.4rem;
+  padding: 8px;
+  border-radius: var(--r-full);
+  transition: background var(--ease);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.top-header-action:hover { background: var(--surface-alt); }

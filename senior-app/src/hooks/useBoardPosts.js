@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { hashPassword } from '../utils/crypto';
-import { getUserIdentifier } from '../utils/user';
+import { getUserIdentifier, saveMyPostId } from '../utils/user';
 
 /**
  * 게시판 공통 로직을 담은 커스텀 훅
@@ -106,12 +106,12 @@ export default function useBoardPosts(boardId) {
         const baseNickname = newPost.author || '수줍은시니어';
         const authorWithIp = `${baseNickname}(${ipIdentifier})`;
 
-        await addDoc(collection(db, 'posts'), {
+        const docRef = await addDoc(collection(db, 'posts'), {
           title: newPost.title,
           content: newPost.content,
           author: authorWithIp,
-          password: hashedPassword, // 암호화된 비밀번호 저장
-          isPinned: false, // 기본적으로 고정 해제 상태
+          password: hashedPassword,
+          isPinned: false,
           date: newPost.date || new Date().toISOString().split('T')[0],
           views: newPost.views !== undefined ? newPost.views : 0,
           comments: newPost.comments !== undefined ? newPost.comments : 0,
@@ -122,7 +122,9 @@ export default function useBoardPosts(boardId) {
           ...(audioURL && { audioURL }),
         });
 
-        // 저장 후 다시 불러오기
+        // 내 작성글 목록에 postId 저장
+        saveMyPostId(docRef.id);
+
         await loadPosts();
         alert('게시글이 성공적으로 등록되었습니다.');
       } catch (error) {

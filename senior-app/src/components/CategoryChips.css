@@ -1,0 +1,57 @@
+/* ── 칩 바 ── */
+.chip-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 12px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.chip-bar::-webkit-scrollbar { display: none; }
+
+/* ── 칩 ── */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-sub);
+  white-space: nowrap;
+  transition: all var(--ease);
+  min-height: 40px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+}
+
+.chip-active {
+  background: var(--primary) !important;
+  color: var(--text-inv) !important;
+  border-color: var(--primary) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.chip-emoji { font-size: 1rem; line-height: 1; }
+.chip-label { line-height: 1; }
+
+/* ── 모바일 ── */
+@media (max-width: 480px) {
+  .chip {
+    padding: 7px 10px;
+    font-size: var(--fs-xs);
+    gap: 3px;
+    min-height: 36px;
+  }
+
+  .chip-emoji { font-size: .9rem; }
+}

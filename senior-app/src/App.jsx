@@ -1,36 +1,33 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import TopHeader from './components/TopHeader';
+import BottomTabBar from './components/BottomTabBar';
 import Home from './pages/Home';
-import MonthlyTopic from './pages/MonthlyTopic';
-import Counseling from './pages/Counseling';
-import FreeBoard from './pages/FreeBoard';
-import Education from './pages/Education';
-import './App.css';
-import Notice from './pages/Notice'; // ⭐ 추가
+import Board from './pages/Board';
+import Notice from './pages/Notice';
 import NoticeDetail from './pages/NoticeDetail';
+import MyPosts from './pages/MyPosts';
 import GrandsonSearch from './components/GrandsonSearch';
+import { useState } from 'react';
+import './App.css';
 
 function App() {
+  const [isAIOpen, setIsAIOpen] = useState(false);
+
   return (
     <Router>
-      <div className="app-wrapper">
-        <Navbar />
-        <GrandsonSearch />
-        <main className="main-content">
+      <div className="app-shell">
+        <TopHeader />
+        <main className="app-main">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/monthly-topic" element={<MonthlyTopic />} />
-            <Route path="/counseling" element={<Counseling />} />
-            <Route path="/freeboard" element={<FreeBoard />} />
-            <Route path="/education" element={<Education />} />
-                {/* ⭐ 추가: 공지사항 페이지 라우팅 */}
+            <Route path="/board" element={<Board />} />
             <Route path="/notice" element={<Notice />} />
             <Route path="/notice/:id" element={<NoticeDetail />} />
+            <Route path="/my-posts" element={<MyPosts />} />
           </Routes>
         </main>
-        <footer className="footer">
-          <p>© 2025 시니어 커뮤니티 · 함께하는 즐거운 노후</p>
-        </footer>
+        <BottomTabBar onAIOpen={() => setIsAIOpen(true)} />
+        <GrandsonSearch isOpen={isAIOpen} onClose={() => setIsAIOpen(false)} />
       </div>
     </Router>
   );

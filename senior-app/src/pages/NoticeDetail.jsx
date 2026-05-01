@@ -1,48 +1,48 @@
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
+import './NoticeDetail.css';
 
 function NoticeDetail() {
   const { id } = useParams();
   const [notice, setNotice] = useState(null);
 
   useEffect(() => {
-    const fetchNotice = async () => {
+    (async () => {
       try {
-        const docRef = doc(db, 'notice', id);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          console.log(docSnap.data()); // ⭐ 확인용
-          setNotice(docSnap.data());
-        } else {
-          console.log("문서 없음");
-        }
-      } catch (error) {
-        console.error(error);
+        const snap = await getDoc(doc(db, 'notice', id));
+        if (snap.exists()) setNotice(snap.data());
+      } catch (e) {
+        console.error(e);
       }
-    };
-
-    fetchNotice();
+    })();
   }, [id]);
 
-  if (!notice) return <div className="section">로딩중...</div>;
+  if (!notice) {
+    return <div className="notice-detail-loading">로딩중...</div>;
+  }
 
   return (
-    <div className="section">
+    <div className="notice-detail">
+      <Link to="/notice" className="notice-detail-back">← 공지 목록</Link>
 
-      {/* 제목 */}
-      <h2 className="section-title">{notice.title}</h2>
+      <div className="notice-detail-card">
+        <span className="notice-detail-badge">📢 공지사항</span>
+        <h1 className="notice-detail-title">{notice.title}</h1>
 
-      {/* 내용 */}
-      <div style={{
-        marginTop: '20px', lineHeight: '1.6',
-        whiteSpace: 'pre-line'
-      }}>
-        {notice.content}
+        {notice.createdAt?.toDate && (
+          <p className="notice-detail-date">
+            📅 {notice.createdAt.toDate().toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </p>
+        )}
+
+        <div className="notice-detail-content">{notice.content}</div>
       </div>
-
     </div>
   );
 }

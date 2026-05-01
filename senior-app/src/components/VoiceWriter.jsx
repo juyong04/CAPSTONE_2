@@ -406,20 +406,18 @@ function VoiceWriter({ onPostCreate }) {
             <div className="vw-original-text">{transcript}</div>
           </details>
 
-          <div className="vw-auth-inputs" style={{ display: 'flex', gap: '10px', marginTop: '20px', marginBottom: '10px' }}>
+          <div className="vw-auth-inputs">
             <input
               type="text"
               placeholder="닉네임 (미입력시 수줍은시니어)"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
             <input
               type="password"
               placeholder="비밀번호 (수정/삭제용)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
           </div>
 
