@@ -193,12 +193,41 @@ export default function useBoardPosts(boardId) {
     }
   }, []);
 
-  // 댓글 추가
+  // 댓글 추가 (음성 포함 가능)
   const addComment = useCallback(async (postId, comment) => {
     try {
+      let audioURL = null;
+
+      // 오디오 Blob이 있으면 Firebase Storage에 업로드
+      if (comment.audioBlob) {
+        try {
+          const audioFileName = `comment-audio/${postId}/${Date.now()}_${Math.random()
+            .toString(36)
+            .slice(2, 8)}.webm`;
+          const audioRef = ref(storage, audioFileName);
+
+          const uploadTask = uploadBytes(audioRef, comment.audioBlob, {
+            contentType: 'audio/webm',
+          });
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('업로드 시간 초과')), 5000)
+          );
+
+          await Promise.race([uploadTask, timeoutPromise]);
+          audioURL = await getDownloadURL(audioRef);
+        } catch (storageError) {
+          console.error('댓글 음성 업로드 실패:', storageError);
+          alert('음성 파일 업로드에 실패했습니다. 텍스트만 저장됩니다.');
+        }
+      }
+
+      // audioBlob은 Firestore에 저장하지 않으므로 제거
+      const { audioBlob, ...commentData } = comment;
+      const finalComment = { ...commentData, ...(audioURL && { audioURL }) };
+
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, {
-        commentList: arrayUnion(comment),
+        commentList: arrayUnion(finalComment),
         comments: increment(1)
       });
       await loadPosts();

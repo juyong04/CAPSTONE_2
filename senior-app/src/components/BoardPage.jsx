@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getSavedNickname, saveNickname } from '../utils/user';
 import { hashPassword } from '../utils/crypto';
@@ -44,10 +44,133 @@ function BoardPage({
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editCommentText, setEditCommentText] = useState('');
 
+  // ── 댓글 음성 입력 관련 state/ref ──
+  const [isCommentListening, setIsCommentListening] = useState(false);
+  const [commentAudioPreviewURL, setCommentAudioPreviewURL] = useState(null);
+  const commentRecognitionRef = useRef(null);
+  const commentMediaRecorderRef = useRef(null);
+  const commentAudioChunksRef = useRef([]);
+  const commentAudioBlobRef = useRef(null);
+  const commentAudioStreamRef = useRef(null);
+
   // 닉네임 불러오기
   useEffect(() => {
     setNickname(getSavedNickname());
   }, []);
+
+  // 컴포넌트 언마운트 시 음성 리소스 정리
+  useEffect(() => {
+    return () => {
+      if (commentRecognitionRef.current) try { commentRecognitionRef.current.stop(); } catch {}
+      if (commentMediaRecorderRef.current && commentMediaRecorderRef.current.state !== 'inactive') {
+        try { commentMediaRecorderRef.current.stop(); } catch {}
+      }
+      if (commentAudioStreamRef.current) {
+        commentAudioStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (commentAudioPreviewURL) URL.revokeObjectURL(commentAudioPreviewURL);
+    };
+  }, []);
+
+  // ── 댓글 음성 인식 토글 ──
+  const toggleCommentListening = useCallback(async () => {
+    // 이미 듣고 있으면 중지
+    if (isCommentListening) {
+      commentRecognitionRef.current?.stop();
+      if (commentMediaRecorderRef.current && commentMediaRecorderRef.current.state !== 'inactive') {
+        commentMediaRecorderRef.current.stop();
+      }
+      if (commentAudioStreamRef.current) {
+        commentAudioStreamRef.current.getTracks().forEach(t => t.stop());
+        commentAudioStreamRef.current = null;
+      }
+      setIsCommentListening(false);
+      return;
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Chrome 브라우저를 사용해주세요.'); return; }
+
+    // 마이크 스트림 & MediaRecorder 시작
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      commentAudioStreamRef.current = stream;
+      commentAudioChunksRef.current = [];
+      commentAudioBlobRef.current = null;
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : 'audio/webm',
+      });
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) commentAudioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(commentAudioChunksRef.current, { type: 'audio/webm' });
+        commentAudioBlobRef.current = blob;
+        if (commentAudioPreviewURL) URL.revokeObjectURL(commentAudioPreviewURL);
+        setCommentAudioPreviewURL(URL.createObjectURL(blob));
+      };
+
+      commentMediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+    } catch {
+      alert('마이크 권한이 필요합니다. 브라우저 설정에서 허용해주세요.');
+      return;
+    }
+
+    // SpeechRecognition 설정
+    const r = new SR();
+    r.lang = 'ko-KR';
+    r.continuous = true;
+    r.interimResults = true;
+
+    r.onstart = () => {
+      setIsCommentListening(true);
+      setNewComment('');
+    };
+
+    r.onresult = (e) => {
+      let text = '';
+      for (let i = 0; i < e.results.length; i++) {
+        text += e.results[i][0].transcript;
+      }
+      setNewComment(text);
+    };
+
+    r.onerror = (e) => {
+      setIsCommentListening(false);
+      if (e.error === 'not-allowed') alert('마이크 권한이 필요합니다.');
+    };
+
+    r.onend = () => {
+      setIsCommentListening(false);
+      // MediaRecorder도 함께 중지
+      if (commentMediaRecorderRef.current && commentMediaRecorderRef.current.state !== 'inactive') {
+        commentMediaRecorderRef.current.stop();
+      }
+      if (commentAudioStreamRef.current) {
+        commentAudioStreamRef.current.getTracks().forEach(t => t.stop());
+        commentAudioStreamRef.current = null;
+      }
+    };
+
+    commentRecognitionRef.current = r;
+    r.start();
+  }, [isCommentListening, commentAudioPreviewURL]);
+
+  // ── 댓글 녹음 초기화 ──
+  const clearCommentAudio = useCallback(() => {
+    commentAudioBlobRef.current = null;
+    commentAudioChunksRef.current = [];
+    if (commentAudioPreviewURL) {
+      URL.revokeObjectURL(commentAudioPreviewURL);
+      setCommentAudioPreviewURL(null);
+    }
+  }, [commentAudioPreviewURL]);
 
   // URL 파라미터의 postId로 글 상세 열기
   useEffect(() => {
@@ -173,6 +296,8 @@ function BoardPage({
       author: nickname || '수줍은시니어',
       password: hashed,
       date: new Date().toISOString().split('T')[0],
+      // 녹음된 오디오 Blob이 있으면 포함 (hook에서 Storage 업로드 처리)
+      ...(commentAudioBlobRef.current && { audioBlob: commentAudioBlobRef.current }),
     };
 
     onAddComment(selectedPost.id, c);
@@ -183,6 +308,7 @@ function BoardPage({
     }));
     setNewComment('');
     setCommentPassword('');
+    clearCommentAudio();
   };
 
   // ── 핸들러: 댓글 비밀번호 검증 ──
@@ -337,6 +463,7 @@ function BoardPage({
                         <div className="bp-comment-author">
                           <span className="bp-avatar">{(c.author || '시')[0]}</span>
                           <strong>{c.author}</strong>
+                          {c.audioURL && <span className="bp-comment-voice-badge">🎤</span>}
                           <span className="bp-comment-date">{c.date}</span>
                         </div>
                         <div className="bp-comment-btns">
@@ -352,7 +479,15 @@ function BoardPage({
                           <button onClick={() => setEditingCommentId(null)}>취소</button>
                         </div>
                       ) : (
-                        <p className="bp-comment-text">{c.text}</p>
+                        <>
+                          <p className="bp-comment-text">{c.text}</p>
+                          {c.audioURL && (
+                            <div className="bp-comment-audio">
+                              <span className="bp-comment-audio-label">🔊 음성 댓글 듣기</span>
+                              <audio controls src={c.audioURL} />
+                            </div>
+                          )}
+                        </>
                       )}
                     </li>
                   ))}
@@ -365,14 +500,53 @@ function BoardPage({
                     <input type="password" placeholder="비밀번호" value={commentPassword} onChange={e => setCommentPassword(e.target.value)} />
                   </div>
                   <div className="bp-comment-row">
+                    <button
+                      type="button"
+                      className={`bp-comment-mic ${isCommentListening ? 'bp-comment-mic-on' : ''}`}
+                      onClick={toggleCommentListening}
+                      title={isCommentListening ? '음성 입력 중지' : '음성으로 댓글 작성'}
+                    >
+                      {isCommentListening ? (
+                        <span className="bp-comment-mic-pulse">⏹️</span>
+                      ) : (
+                        '🎤'
+                      )}
+                    </button>
                     <input
-                      placeholder="댓글을 남겨보세요"
+                      placeholder={isCommentListening ? '듣고 있어요...' : '댓글을 남겨보세요'}
                       value={newComment}
                       onChange={e => setNewComment(e.target.value)}
                       onKeyPress={e => e.key === 'Enter' && handleAddComment()}
                     />
                     <button className="bp-comment-submit" onClick={handleAddComment}>등록</button>
                   </div>
+
+                  {/* 음성 녹음 미리듣기 */}
+                  {commentAudioPreviewURL && (
+                    <div className="bp-comment-audio-preview">
+                      <div className="bp-comment-audio-preview-header">
+                        <span>🔊 녹음된 음성 미리듣기</span>
+                        <button
+                          type="button"
+                          className="bp-comment-audio-remove"
+                          onClick={clearCommentAudio}
+                          title="녹음 삭제"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <audio controls src={commentAudioPreviewURL} />
+                      <p className="bp-comment-audio-note">댓글 등록 시 이 음성도 함께 업로드됩니다</p>
+                    </div>
+                  )}
+
+                  {/* 음성 인식 중 안내 */}
+                  {isCommentListening && (
+                    <div className="bp-comment-listening-indicator">
+                      <span className="bp-rec-dot"></span>
+                      <span>음성을 인식하고 있어요... 말씀이 끝나면 ⏹️ 버튼을 눌러주세요</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
